@@ -6,7 +6,7 @@ sources:
     schema: false
     identifier: false
   tables:
+  - name: _airbyte_raw_coupons
   - name: _airbyte_raw_customers
-  - name: _airbyte_raw_discount_codes
-  - name: _airbyte_raw_draft_orders
+  - name: _airbyte_raw_orders
   - name: _airbyte_raw_products

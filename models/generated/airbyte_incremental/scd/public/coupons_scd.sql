@@ -7,7 +7,7 @@
                     set final_table_relation = adapter.get_relation(
                             database=this.database,
                             schema=this.schema,
-                            identifier='products'
+                            identifier='coupons'
                         )
                     %}
                     {#
@@ -33,12 +33,12 @@
                         from (
                                 select distinct _airbyte_unique_key as unique_key
                                 from {{ this }}
-                                where 1=1 {{ incremental_clause('_airbyte_normalized_at', adapter.quote(this.schema) + '.' + adapter.quote('products')) }}
+                                where 1=1 {{ incremental_clause('_airbyte_normalized_at', adapter.quote(this.schema) + '.' + adapter.quote('coupons')) }}
                             ) recent_records
                             left join (
                                 select _airbyte_unique_key as unique_key, count(_airbyte_unique_key) as active_count
                                 from {{ this }}
-                                where _airbyte_active_row = 1 {{ incremental_clause('_airbyte_normalized_at', adapter.quote(this.schema) + '.' + adapter.quote('products')) }}
+                                where _airbyte_active_row = 1 {{ incremental_clause('_airbyte_normalized_at', adapter.quote(this.schema) + '.' + adapter.quote('coupons')) }}
                                 group by _airbyte_unique_key
                             ) active_counts
                             on recent_records.unique_key = active_counts.unique_key
@@ -48,18 +48,18 @@
                     -- We have to have a non-empty query, so just do a noop delete
                     delete from {{ this }} where 1=0
                     {% endif %}
-                    ","delete from _airbyte_public.products_stg where _airbyte_emitted_at != (select max(_airbyte_emitted_at) from _airbyte_public.products_stg)"],
+                    ","delete from _airbyte_public.coupons_stg where _airbyte_emitted_at != (select max(_airbyte_emitted_at) from _airbyte_public.coupons_stg)"],
     tags = [ "top-level" ]
 ) }}
--- depends_on: ref('products_stg')
+-- depends_on: ref('coupons_stg')
 with
 {% if is_incremental() %}
 new_data as (
     -- retrieve incremental "new" data
     select
         *
-    from {{ ref('products_stg')  }}
-    -- products from {{ source('public', '_airbyte_raw_products') }}
+    from {{ ref('coupons_stg')  }}
+    -- coupons from {{ source('public', '_airbyte_raw_coupons') }}
     where 1 = 1
     {{ incremental_clause('_airbyte_emitted_at', this) }}
 ),
@@ -78,7 +78,7 @@ empty_new_data as (
 previous_active_scd_data as (
     -- retrieve "incomplete old" data that needs to be updated with an end date because of new changes
     select
-        {{ star_intersect(ref('products_stg'), this, from_alias='inc_data', intersect_alias='this_data') }}
+        {{ star_intersect(ref('coupons_stg'), this, from_alias='inc_data', intersect_alias='this_data') }}
     from {{ this }} as this_data
     -- make a join with new_data using primary key to filter active data that need to be updated only
     join new_data_ids on this_data._airbyte_unique_key = new_data_ids._airbyte_unique_key
@@ -87,15 +87,15 @@ previous_active_scd_data as (
     where _airbyte_active_row = 1
 ),
 input_data as (
-    select {{ dbt_utils.star(ref('products_stg')) }} from new_data
+    select {{ dbt_utils.star(ref('coupons_stg')) }} from new_data
     union all
-    select {{ dbt_utils.star(ref('products_stg')) }} from previous_active_scd_data
+    select {{ dbt_utils.star(ref('coupons_stg')) }} from previous_active_scd_data
 ),
 {% else %}
 input_data as (
     select *
-    from {{ ref('products_stg')  }}
-    -- products from {{ source('public', '_airbyte_raw_products') }}
+    from {{ ref('coupons_stg')  }}
+    -- coupons from {{ source('public', '_airbyte_raw_coupons') }}
 ),
 {% endif %}
 scd_data as (
@@ -105,72 +105,34 @@ scd_data as (
       adapter.quote('id'),
       ]) }} as _airbyte_unique_key,
       {{ adapter.quote('id') }},
-      sku,
-      {{ adapter.quote('name') }},
-      slug,
-      tags,
-      price,
+      code,
       _links,
-      images,
-      status,
-      weight,
-      on_sale,
-      virtual,
-      featured,
+      amount,
+      used_by,
       shop_url,
-      variable,
-      variants,
-      downloads,
       meta_data,
-      parent_id,
-      permalink,
-      tax_class,
-      {{ adapter.quote('attributes') }},
-      backorders,
-      categories,
-      dimensions,
-      price_html,
-      sale_price,
-      tax_status,
-      upsell_ids,
-      variations,
-      backordered,
-      button_text,
       description,
-      purchasable,
-      related_ids,
-      total_sales,
+      product_ids,
+      usage_count,
+      usage_limit,
       date_created,
-      downloadable,
-      external_url,
-      manage_stock,
-      rating_count,
-      stock_status,
+      date_expires,
       date_modified,
-      purchase_note,
-      regular_price,
-      average_rating,
-      cross_sell_ids,
-      download_limit,
-      shipping_class,
-      stock_quantity,
-      date_on_sale_to,
-      download_expiry,
-      reviews_allowed,
+      discount_type,
+      free_shipping,
+      individual_use,
+      maximum_amount,
+      minimum_amount,
       date_created_gmt,
-      grouped_products,
-      shipping_taxable,
+      date_expires_gmt,
       date_modified_gmt,
-      date_on_sale_from,
-      shipping_class_id,
-      shipping_required,
-      short_description,
-      sold_individually,
-      backorders_allowed,
-      catalog_visibility,
-      default_attributes,
-      date_on_sale_to_gmt,
-      date_on_sale_from_gmt,
+      email_restrictions,
+      exclude_sale_items,
+      product_categories,
+      excluded_product_ids,
+      usage_limit_per_user,
+      limit_usage_to_x_items,
+      excluded_product_categories,
       date_modified as _airbyte_start_at,
       lag(date_modified) over (
         partition by {{ adapter.quote('id') }}
@@ -188,7 +150,7 @@ scd_data as (
       ) = 1 then 1 else 0 end as _airbyte_active_row,
       _airbyte_ab_id,
       _airbyte_emitted_at,
-      _airbyte_products_hashid
+      _airbyte_coupons_hashid
     from input_data
 ),
 dedup_data as (
@@ -214,78 +176,40 @@ select
     _airbyte_unique_key,
     _airbyte_unique_key_scd,
     {{ adapter.quote('id') }},
-    sku,
-    {{ adapter.quote('name') }},
-    slug,
-    tags,
-    price,
+    code,
     _links,
-    images,
-    status,
-    weight,
-    on_sale,
-    virtual,
-    featured,
+    amount,
+    used_by,
     shop_url,
-    variable,
-    variants,
-    downloads,
     meta_data,
-    parent_id,
-    permalink,
-    tax_class,
-    {{ adapter.quote('attributes') }},
-    backorders,
-    categories,
-    dimensions,
-    price_html,
-    sale_price,
-    tax_status,
-    upsell_ids,
-    variations,
-    backordered,
-    button_text,
     description,
-    purchasable,
-    related_ids,
-    total_sales,
+    product_ids,
+    usage_count,
+    usage_limit,
     date_created,
-    downloadable,
-    external_url,
-    manage_stock,
-    rating_count,
-    stock_status,
+    date_expires,
     date_modified,
-    purchase_note,
-    regular_price,
-    average_rating,
-    cross_sell_ids,
-    download_limit,
-    shipping_class,
-    stock_quantity,
-    date_on_sale_to,
-    download_expiry,
-    reviews_allowed,
+    discount_type,
+    free_shipping,
+    individual_use,
+    maximum_amount,
+    minimum_amount,
     date_created_gmt,
-    grouped_products,
-    shipping_taxable,
+    date_expires_gmt,
     date_modified_gmt,
-    date_on_sale_from,
-    shipping_class_id,
-    shipping_required,
-    short_description,
-    sold_individually,
-    backorders_allowed,
-    catalog_visibility,
-    default_attributes,
-    date_on_sale_to_gmt,
-    date_on_sale_from_gmt,
+    email_restrictions,
+    exclude_sale_items,
+    product_categories,
+    excluded_product_ids,
+    usage_limit_per_user,
+    limit_usage_to_x_items,
+    excluded_product_categories,
     _airbyte_start_at,
     _airbyte_end_at,
     _airbyte_active_row,
     _airbyte_ab_id,
     _airbyte_emitted_at,
     {{ current_timestamp() }} as _airbyte_normalized_at,
-    _airbyte_products_hashid
+    _airbyte_coupons_hashid
 from dedup_data where _airbyte_row_num = 1
 
