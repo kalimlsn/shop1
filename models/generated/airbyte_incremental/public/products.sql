@@ -9,7 +9,7 @@
 select
     _airbyte_unique_key,
     {{ adapter.quote('id') }},
-    title ,
+    title,
     created_at as date_created,
     updated_at as date_modified,
     product_type,
