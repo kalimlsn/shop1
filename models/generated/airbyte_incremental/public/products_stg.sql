@@ -9,7 +9,7 @@
 select
     {{ dbt_utils.surrogate_key([
         adapter.quote('id'),
-        'tags',
+        object_to_string('tags'),
         object_to_string('image'),
         'title',
         'handle',
