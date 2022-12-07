@@ -7,7 +7,7 @@
 -- Final base SQL model
 -- depends_on: {{ ref('products_scd') }}
 select
-    _airbyte_unique_key,
+    _airbyte_unique_key as test,
     {{ adapter.quote('id') }},
     title,
     created_at as date_created,
