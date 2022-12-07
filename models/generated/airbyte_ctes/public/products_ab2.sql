@@ -7,7 +7,7 @@
 -- SQL model to cast each column to its adequate SQL type converted from the JSON schema type
 -- depends_on: {{ ref('products_ab1') }}
 select
-    cast({{ adapter.quote('id') }} as {{ dbt_utils.type_bigint() }}) as {{ adapter.quote('id') }},
+    cast({{ adapter.quote('id') }} as {{ dbt_utils.type_string() }}) as {{ adapter.quote('id') }},
     cast(tags as {{ dbt_utils.type_string() }}) as tags,
     cast(image as {{ type_json() }}) as image,
     cast(title as {{ dbt_utils.type_string() }}) as title,
