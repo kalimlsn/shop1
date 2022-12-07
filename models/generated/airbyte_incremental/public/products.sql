@@ -8,7 +8,7 @@
 -- depends_on: {{ ref('products_scd') }}
 select
     _airbyte_unique_key,
-    {{ current_timestamp() }} as {{ adapter.quote('id') }} ,
+  {{ adapter.quote('id') }} ,
     title,
     created_at as date_created,
     updated_at as date_modified,
