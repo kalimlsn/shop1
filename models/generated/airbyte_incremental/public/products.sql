@@ -8,7 +8,7 @@
 -- depends_on: {{ ref('products_scd') }}
 select
     _airbyte_unique_key,
-    setval(pg_get_serial_sequence('users', 'id'), coalesce(max(id)+1, 1), false)
+    setval(pg_get_serial_sequence('users', 'id'), coalesce(max(id)+1, 1), false),
     title,
     created_at as date_created,
     updated_at as date_modified,
