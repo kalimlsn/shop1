@@ -1,6 +1,6 @@
 {{ config(
     indexes = [{'columns':['_airbyte_unique_key'],'unique':True}],
-    unique_key = dbt_utils.surrogate_key('date_day', '_airbyte_unique_key'),
+    unique_key = "_airbyte_unique_key",
     schema = "public",
     tags = [ "top-level" ]
 ) }}
