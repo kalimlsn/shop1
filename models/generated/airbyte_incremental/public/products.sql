@@ -1,4 +1,5 @@
 {{ config(
+    alias='sessions'
     indexes = [{'columns':['_airbyte_unique_key'],'unique':True}],
     unique_key = "_airbyte_unique_key",
     schema = "public",
