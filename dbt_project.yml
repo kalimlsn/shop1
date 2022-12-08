@@ -68,7 +68,7 @@ vars:
     products_ab2: public._airbyte_raw_spfproducts
     products_stg: public._airbyte_raw_spfproducts
     products_scd: public._airbyte_raw_spfproducts
-    products: public._airbyte_raw_spfproducts
+    spf_products: public._airbyte_raw_spfproducts
     coupons__links_ab1: public._airbyte_raw_coupons
     coupons__links_ab2: public._airbyte_raw_coupons
     coupons__links_ab3: public._airbyte_raw_coupons
