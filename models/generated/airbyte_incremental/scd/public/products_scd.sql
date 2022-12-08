@@ -49,17 +49,17 @@
                     -- We have to have a non-empty query, so just do a noop delete
                     delete from {{ this }} where 1=0
                     {% endif %}
-                    ","delete from _airbyte_public.products_stg where _airbyte_emitted_at != (select max(_airbyte_emitted_at) from _airbyte_public.products_stg)"],
+                    ","delete from _airbyte_public.spf_products_stg where _airbyte_emitted_at != (select max(_airbyte_emitted_at) from _airbyte_public.spf_products_stg)"],
     tags = [ "top-level" ]
 ) }}
--- depends_on: ref('products_stg')
+-- depends_on: ref('spf_products_stg')
 with
 {% if is_incremental() %}
 new_data as (
     -- retrieve incremental "new" data
     select
         *
-    from {{ ref('products_stg')  }}
+    from {{ ref('spf_products_stg')  }}
     -- products from {{ source('public', '_airbyte_raw_spfproducts') }}
     where 1 = 1
     {{ incremental_clause('_airbyte_emitted_at', this) }}
@@ -79,7 +79,7 @@ empty_new_data as (
 previous_active_scd_data as (
     -- retrieve "incomplete old" data that needs to be updated with an end date because of new changes
     select
-        {{ star_intersect(ref('products_stg'), this, from_alias='inc_data', intersect_alias='this_data') }}
+        {{ star_intersect(ref('spf_products_stg'), this, from_alias='inc_data', intersect_alias='this_data') }}
     from {{ this }} as this_data
     -- make a join with new_data using primary key to filter active data that need to be updated only
     join new_data_ids on this_data._airbyte_unique_key = new_data_ids._airbyte_unique_key
@@ -89,14 +89,14 @@ previous_active_scd_data as (
 ),
 input_data as (
     
-    select {{ dbt_utils.star(ref('products_stg')) }}from new_data
+    select {{ dbt_utils.star(ref('spf_products_stg')) }}from new_data
     union all
-    select {{ dbt_utils.star(ref('products_stg')) }} from previous_active_scd_data
+    select {{ dbt_utils.star(ref('spf_products_stg')) }} from previous_active_scd_data
 ),
 {% else %}
 input_data as (
     select *
-    from {{ ref('products_stg')  }}
+    from {{ ref('spf_products_stg')  }}
     -- products from {{ source('public', '_airbyte_raw_spfproducts') }}
 ),
 {% endif %}
