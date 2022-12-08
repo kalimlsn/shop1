@@ -1,4 +1,5 @@
 {{ config(
+    alias='spf_products_scd',
     indexes = [{'columns':['_airbyte_active_row','_airbyte_unique_key_scd','_airbyte_emitted_at'],'type': 'btree'}],
     unique_key = "_airbyte_unique_key_scd",
     schema = "public",
