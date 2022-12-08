@@ -103,11 +103,9 @@ scd_data as (
     -- SQL model to build a Type 2 Slowly Changing Dimension (SCD) table for each record identified by their primary key
     select
       {{ dbt_utils.surrogate_key([
---       adapter.quote('id'),
-          cast({{ adapter.quote('id') }} as {{ dbt_utils.type_string() }}) as {{ adapter.quote('id') }},
+      adapter.quote('id'),
       ]) }} as _airbyte_unique_key,
---       {{ adapter.quote('id') }},
-    cast({{ adapter.quote('id') }} as {{ dbt_utils.type_string() }}) as {{ adapter.quote('id') }},
+      {{ adapter.quote('id') }},
       tags,
       image,
       title,
