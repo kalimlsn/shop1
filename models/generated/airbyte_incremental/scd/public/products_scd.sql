@@ -88,9 +88,9 @@ previous_active_scd_data as (
 ),
 input_data as (
     
-    select cast({{ dbt_utils.star(ref('products_stg')) }} as {{ dbt_utils.type_string() }}) as {{ dbt_utils.star(ref('products_stg')) }} from new_data
+    select {{ dbt_utils.star(ref('products_stg')) }}from new_data
     union all
-    select cast({{ dbt_utils.star(ref('products_stg')) }} as {{ dbt_utils.type_string() }}) as {{ dbt_utils.star(ref('products_stg')) }} from previous_active_scd_data
+    select {{ dbt_utils.star(ref('products_stg')) }} from previous_active_scd_data
 ),
 {% else %}
 input_data as (
